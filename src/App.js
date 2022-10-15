@@ -90,20 +90,16 @@ function App() {
 					owner: product[0],
 					image: product[1],
 					brand: product[2],
-					 size: product[3],
-					price:product[4],
-					sold:product[5]
+					size: product[3],
+					price: product[4],
+					sold: product[5],
 				});
 			});
 			_showe.push(_products);
 		}
 		const _products = await Promise.all(_showe);
 		setProducts(_products);
-		 
 	};
-	
-	 
-	
 
 	const AddProduct = async (_image, _brand, _size, price) => {
 		const _price = new BigNumber(price)
@@ -111,7 +107,7 @@ function App() {
 			.toString();
 		try {
 			await contract.methods
-				.addProduct(_image, _brand, _size, _price,)
+				.addProduct(_image, _brand, _size, _price)
 				.send({ from: address });
 			getProducts();
 		} catch (error) {
@@ -119,34 +115,20 @@ function App() {
 		}
 	};
 
-	const UpdateShoeImage = async (_index, _newImage) => {
-		const newImage= new BigNumber(_newImage).shiftedBy(ERC20_DECIMALS).toString();
-		console.log(_index);
+	const UpdateShoe = async (_index,_newImage, _newBrand) => {
 
-		
 		try {
-		  await contract.methods.update(_index, newImage).send({ from: address });
-		  getProducts();
-		  getBalance();
+			await contract.methods
+				.update(_index, _newImage, _newBrand)
+				.send({ from: address });
+			getProducts();
+			getBalance();
 		} catch (error) {
-		 console.log(error);
-		 alert("The Shoe image has succesfully been updated")
-		}};
-	 
-		const UpdateShoeBrand = async (_index, _newBrand) => {
-			const newBrand = new BigNumber(_newBrand).shiftedBy(ERC20_DECIMALS).toString();
-			console.log(_index);
-	
+			console.log(error);
 			
-			try {
-			  await contract.methods.update(_index, newBrand).send({ from: address });
-			  getProducts();
-			  getBalance();
-			} catch (error) {
-			 console.log(error);
-			 alert("The Shoe brand has succesfully been updated")
-			}};
- 
+		}
+	};
+
 	const buyProduct = async (_index) => {
 		try {
 			const cUSDContract = new kit.web3.eth.Contract(
@@ -167,22 +149,17 @@ function App() {
 
 	return (
 		<div>
-				<Navbar balance={cUSDBalance} />
+			<Navbar balance={cUSDBalance} />
 
-				<Products
-					products={products}
-					buyProduct={buyProduct}
-					UpdateShoeImage={UpdateShoeImage}
-					UpdateShoeBrand={UpdateShoeBrand}
-					onlyOwner={address}
-				
-				/>
-				<AddProducts AddProduct={AddProduct} /> 
-			</div>
-	
-	
-);
-	
+			<Products
+				products={products}
+				buyProduct={buyProduct}
+				updateShoe={UpdateShoe}
+				onlyOwner={address}
+			/>
+			<AddProducts AddProduct={AddProduct} />
+		</div>
+	);
 }
 
 export default App;
