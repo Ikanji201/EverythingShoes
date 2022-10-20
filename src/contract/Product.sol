@@ -1,4 +1,4 @@
- // SPDX-License-Identifier: MIT
+  // SPDX-License-Identifier: MIT
 
 pragma solidity >=0.7.0 <0.9.0;
 
@@ -28,102 +28,122 @@ interface IERC20Token {
 }
 
 contract Marketplace {
+    uint256 internal shoesLength = 0;
 
-    uint internal shoesLength = 0;
-    address internal cUsdTokenAddress =  0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
+    address internal cUsdTokenAddress =
+        0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
+         
 
-    
-    struct Product {
+    struct Shoe {
         address payable owner;
         string image;
         string brand;
         string size;
-        uint price;
-        uint sold;
-
+        uint256 price;
+        uint256 sold;
     }
-    	mapping (uint => Product) internal products;
+    mapping(uint256 => Shoe) private shoes;
 
-        //Modifier that allows only the owner of the product  to access the functions
-    modifier onlyOwner(uint _index){
-        require(msg.sender == products[_index].owner, "Only the owner can access this function");
+    mapping(uint256 => bool) private _exists;
+
+    // check if a shoe with id of _index exists
+    modifier exists(uint256 _index) {
+        require(_exists[_index], "Query of nonexistent shoe");
+        _;
+    }
+    // checks if the input data for image and brand are non-empty values
+    modifier checkInputData(string calldata _image, string calldata _brand) {
+        require(bytes(_image).length > 0, "Empty image");
+        require(bytes(_brand).length > 0, "Empty brand");
         _;
     }
 
-
-  function  addProduct(
-        string memory _image, 
-        string memory _brand,
-         string memory _size,
-        uint _price
-        
-        
-    ) public {
-         uint _sold = 0;
-
-         products [shoesLength] =  Product(
+    /**
+     * @dev allow users to add and sell a shoe on the platform
+     * @notice input needs to contain only valid/non-empty values
+     */
+    function addShoe(
+        string calldata _image,
+        string calldata _brand,
+        string calldata _size,
+        uint256 _price
+    ) public checkInputData(_image, _brand) {
+        require(bytes(_size).length > 0, "Empty size");
+        uint256 _sold = 0;
+        uint256 index = shoesLength;
+        shoesLength++;
+        shoes[index] = Shoe(
             payable(msg.sender),
-            
             _image,
             _brand,
             _size,
             _price,
             _sold
-            
-             
         );
-
-        shoesLength++;
+        _exists[index] = true;
     }
 
-
-    function readProduct(uint _index) public view returns (
-		address payable,
-		string memory, 
-		string memory, 
-		string memory, 
-		uint, 
-		uint
-	) {
-		return (
-			products[_index].owner, 
-			products[_index].image, 
-			products[_index].brand, 
-			products[_index].size,  
-			products[_index].price,
-			products[_index].sold
-		);
-	}
-
-
-    function buyProduct(uint _index) public payable  {
-		require(
-		  IERC20Token(cUsdTokenAddress).transferFrom(
-			msg.sender,
-			products[_index].owner,
-			products[_index].price
-		  ),
-		  "Transfer failed."
-		);
-		products[_index].sold++;
-	}
-
-	function getProductsLength() public view returns (uint) {
-		return (shoesLength);
-	}
-
-
-    // to replace and old shoe with a knew shoe
-    function update(uint _index, string memory _newImage, string memory _newBrand) public returns(string memory, string memory) {
-        Product memory updateShoe = products[_index];
-        updateShoe.image = _newImage;
-        updateShoe.brand = _newBrand;
-        // You can replace the old shoe at specific index to a new shoe.
-        // You can do it, using the statement declared below this line  
-        products[_index] = updateShoe;
-        return(updateShoe.image, updateShoe.brand);
+    function readShoe(uint256 _index)
+        public
+        view
+        exists(_index)
+        returns (
+            address payable,
+            string memory,
+            string memory,
+            string memory,
+            uint256,
+            uint256
+        )
+    {
+        return (
+            shoes[_index].owner,
+            shoes[_index].image,
+            shoes[_index].brand,
+            shoes[_index].size,
+            shoes[_index].price,
+            shoes[_index].sold
+        );
     }
 
+    /**
+     * @dev allow users to buy a shoe
+     */
+          function buyShoe(uint256 _index) public payable exists(_index) {
+        Shoe storage currentShoe = shoes[_index];
+        require(currentShoe.owner != msg.sender, "You can't buy your own shoe");
+        require(
+            IERC20Token(cUsdTokenAddress).transferFrom(
+                msg.sender,
+                currentShoe.owner,
+                currentShoe.price
+            ),
+            "Transfer failed."
+        );
+        currentShoe.sold++;
+    }
+
+   
+
+    function getProductsLength() public view returns (uint256) {
+        return (shoesLength);
+    }
+
+    /**
+     * @dev allow the owner of a shoe with id of _index to update the image and brand of the shoe
+     * @notice Input data needs to contain only non-empty values
+     */
+    function updateShoe(
+        uint256 _index,
+        string calldata _newImage,
+        string calldata _newBrand
+    ) public exists(_index) checkInputData(_newImage, _newBrand) {
+        require(
+            msg.sender == shoes[_index].owner,
+            "Only the shoe owner can update the shoe's details"
+        );
+        Shoe storage currentShoe = shoes[_index];
+        currentShoe.image = _newImage;
+        currentShoe.brand = _newBrand;
+    }
 }
-
-

@@ -22,7 +22,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "addProduct",
+		"name": "addShoe",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -35,7 +35,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "buyProduct",
+		"name": "buyShoe",
 		"outputs": [],
 		"stateMutability": "payable",
 		"type": "function"
@@ -61,7 +61,7 @@
 				"type": "uint256"
 			}
 		],
-		"name": "readProduct",
+		"name": "readShoe",
 		"outputs": [
 			{
 				"internalType": "address payable",
@@ -115,19 +115,8 @@
 				"type": "string"
 			}
 		],
-		"name": "update",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
+		"name": "updateShoe",
+		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	}

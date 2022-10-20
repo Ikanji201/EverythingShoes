@@ -13,7 +13,7 @@ import Products from "./components/Products";
 
 const ERC20_DECIMALS = 18;
 
-const contractAddress = "0x9538d2f98c665e0DfF9DA28841548d04f0DD7650";
+const contractAddress = "0x0F24686FB2ed736b3683241Ba23501A416cE99fA";
 const cUSDContractAddress = "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1";
 
 function App() {
@@ -83,27 +83,23 @@ function App() {
 		const _showe = [];
 		for (let index = 0; index < shoesLength; index++) {
 			let _products = new Promise(async (resolve, reject) => {
-				let product = await contract.methods.readProduct(index).call();
+				let product = await contract.methods.readShoe(index).call();
 
 				resolve({
 					index: index,
 					owner: product[0],
 					image: product[1],
 					brand: product[2],
-					 size: product[3],
-					price:product[4],
-					sold:product[5]
+					size: product[3],
+					price: product[4],
+					sold: product[5],
 				});
 			});
 			_showe.push(_products);
 		}
 		const _products = await Promise.all(_showe);
 		setProducts(_products);
-		 
 	};
-	
-	 
-	
 
 	const AddProduct = async (_image, _brand, _size, price) => {
 		const _price = new BigNumber(price)
@@ -111,7 +107,7 @@ function App() {
 			.toString();
 		try {
 			await contract.methods
-				.addProduct(_image, _brand, _size, _price,)
+				.addShoe(_image, _brand, _size, _price)
 				.send({ from: address });
 			getProducts();
 		} catch (error) {
@@ -119,34 +115,20 @@ function App() {
 		}
 	};
 
-	const UpdateShoeImage = async (_index, _newImage) => {
-		const newImage= new BigNumber(_newImage).shiftedBy(ERC20_DECIMALS).toString();
-		console.log(_index);
+	const UpdateShoe = async (_index,_newImage, _newBrand) => {
 
-		
 		try {
-		  await contract.methods.update(_index, newImage).send({ from: address });
-		  getProducts();
-		  getBalance();
+			await contract.methods
+				.updateShoe(_index, _newImage, _newBrand)
+				.send({ from: address });
+			getProducts();
+			getBalance();
 		} catch (error) {
-		 console.log(error);
-		 alert("The Shoe image has succesfully been updated")
-		}};
-	 
-		const UpdateShoeBrand = async (_index, _newBrand) => {
-			const newBrand = new BigNumber(_newBrand).shiftedBy(ERC20_DECIMALS).toString();
-			console.log(_index);
-	
+			console.log(error);
 			
-			try {
-			  await contract.methods.update(_index, newBrand).send({ from: address });
-			  getProducts();
-			  getBalance();
-			} catch (error) {
-			 console.log(error);
-			 alert("The Shoe brand has succesfully been updated")
-			}};
- 
+		}
+	};
+
 	const buyProduct = async (_index) => {
 		try {
 			const cUSDContract = new kit.web3.eth.Contract(
@@ -157,7 +139,7 @@ function App() {
 			await cUSDContract.methods
 				.approve(contractAddress, products[_index].price)
 				.send({ from: address });
-			await contract.methods.buyProduct(_index).send({ from: address });
+			await contract.methods.buyShoe(_index).send({ from: address });
 			getProducts();
 			getBalance();
 		} catch (error) {
@@ -167,22 +149,17 @@ function App() {
 
 	return (
 		<div>
-				<Navbar balance={cUSDBalance} />
+			<Navbar balance={cUSDBalance} />
 
-				<Products
-					products={products}
-					buyProduct={buyProduct}
-					UpdateShoeImage={UpdateShoeImage}
-					UpdateShoeBrand={UpdateShoeBrand}
-					onlyOwner={address}
-				
-				/>
-				<AddProducts AddProduct={AddProduct} /> 
-			</div>
-	
-	
-);
-	
+			<Products
+				products={products}
+				buyProduct={buyProduct}
+				updateShoe={UpdateShoe}
+				onlyOwner={address}
+			/>
+			<AddProducts AddProduct={AddProduct} />
+		</div>
+	);
 }
 
 export default App;
